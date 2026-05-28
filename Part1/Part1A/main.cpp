@@ -105,11 +105,17 @@
 
     // Naive linear-list approach: checks the word using the sorted vector.
     bool checkLinear(string word) {
-        word = cleanWord(word);
-        if (word.empty()) return true;
+    word = cleanWord(word);
+    if (word.empty()) return true;
 
-        return binary_search(linearList.begin(), linearList.end(), word);
+    for (string w : linearList) {
+        if (w == word) {
+            return true;
+        }
     }
+
+    return false;
+}
 
     // String BBST approach: checks the word using std::set.
     bool checkBST(string word) {
@@ -234,11 +240,10 @@
 
         cout << "File: " << filename << endl;
         cout << "Total words: " << totalWords << endl;
-        cout << "Linear List: " << linearMiss << " misspelled words, Time: " << linearTime << " s" << endl;
-        cout << "BST: " << bstMiss << " misspelled words, Time: " << bstTime << " s" << endl;
-        cout << "Trie: " << trieMiss << " misspelled words, Time: " << trieTime << " s" << endl;
-        cout << "Hash: " << hashMiss << " misspelled words, Time: " << hashTime << " s" << endl;
-    }
+        cout << "Linear List: " << linearMiss << " misspelled words, Time: " << linearTime << " microseconds" << endl;
+        cout << "BST: " << bstMiss << " misspelled words, Time: " << bstTime << " microseconds" << endl;
+        cout << "Trie: " << trieMiss << " misspelled words, Time: " << trieTime << " microseconds" << endl;
+    cout << "Hash: " << hashMiss << " misspelled words, Time: " << hashTime << " microseconds" << endl;}
 
     // Runs lookup benchmarks on increasing text sizes and reports the average time.
     void runBenchmark(string filename, vector<int> sizes) {
