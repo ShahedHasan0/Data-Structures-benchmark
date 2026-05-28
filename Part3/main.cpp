@@ -516,7 +516,7 @@ static void writeCSV(const string& file, const vector<Result>& results) {
 }
 
 int main(int argc, char** argv) {
-    string file = argc >= 2 ? argv[1] : "words.txt";
+    string file = argc >= 2 ? argv[1] : "English_words.txt";
     vector<string> allWords = loadWords(file);
 
     if (allWords.empty()) {
