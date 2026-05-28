@@ -398,8 +398,8 @@ void runBenchmark(string filename, vector<int> sizes) {
 }
 
 int main() {
-    string dictFile = "english_words.txt";
-    string textFile = "spell_text.txt";
+    string dictFile = "english_names.txt";
+    string textFile = "english_words.txt";
 
     cout << "Loading dictionary from " << dictFile << "..." << endl;
 
