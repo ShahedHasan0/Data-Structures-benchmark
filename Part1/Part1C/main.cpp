@@ -3,51 +3,79 @@
 #include <string>
 #include <fstream>
 #include <stack>
-#include <utility>
 
 using namespace std;
 
-// Reads the guest names and conflict pairs from the input file.
-pair<vector<string>, vector<pair<int, int>>> readGuestData(string filename) {
+// Reads guest names from guests.txt.
+// One guest name per line.
+vector<string> readGuests(string filename) {
     ifstream file(filename);
-    if (!file.is_open() && filename == "guests.txt") {
-        filename = "guest.txt";
-        file.open(filename);
-    }
+
     if (!file.is_open()) {
-        cout << "Error: Could not open guest file" << endl;
-        return {{}, {}};
+        cout << "Error: Could not open guests file" << endl;
+        return {};
     }
 
-    int numGuests, numAnimosities;
-    // First two numbers tell how many guests and conflicts are in the file.
-    file >> numGuests >> numAnimosities;
+    vector<string> guests;
+    string name;
 
-    vector<string> guests(numGuests);
-    // Read all guest names in the same order as their indexes.
-    for (int i = 0; i < numGuests; i++) {
-        file >> guests[i];
+    while (file >> name) {
+        guests.push_back(name);
     }
 
-    vector<pair<int, int>> animosities(numAnimosities);
-    // Each pair means two guests cannot sit at the same table.
-    for (int i = 0; i < numAnimosities; i++) {
-        int guest1, guest2;
-        file >> guest1 >> guest2;
-        animosities[i] = {guest1, guest2};
-    }
-
-    return {guests, animosities};
+    return guests;
 }
 
-// Builds an undirected graph where each edge means two guests cannot sit together.
-vector<vector<int>> createGraph(int numGuests, const vector<pair<int, int>>& animosities) {
+// Finds the index of a guest name.
+// Returns -1 if the name is not found.
+int findGuestIndex(const vector<string>& guests, string name) {
+    for (int i = 0; i < guests.size(); i++) {
+        if (guests[i] == name) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+// Reads dislike pairs from dislikes.txt.
+// Each line has two names:
+// Alice Bob
+vector<pair<int, int>> readDislikes(string filename, const vector<string>& guests) {
+    ifstream file(filename);
+
+    if (!file.is_open()) {
+        cout << "Error: Could not open dislikes file" << endl;
+        return {};
+    }
+
+    vector<pair<int, int>> dislikes;
+    string name1, name2;
+
+    while (file >> name1 >> name2) {
+        int guest1 = findGuestIndex(guests, name1);
+        int guest2 = findGuestIndex(guests, name2);
+
+        if (guest1 == -1 || guest2 == -1) {
+            cout << "Warning: Unknown guest in dislike pair: "
+                 << name1 << " " << name2 << endl;
+        } else {
+            dislikes.push_back({guest1, guest2});
+        }
+    }
+
+    return dislikes;
+}
+
+// Builds an undirected graph.
+// Each guest is a node.
+// Each dislike pair is an edge.
+vector<vector<int>> createGraph(int numGuests, const vector<pair<int, int>>& dislikes) {
     vector<vector<int>> graph(numGuests);
 
-    // Add both directions because the conflict is mutual.
-    for (const auto& animosity : animosities) {
-        int guest1 = animosity.first;
-        int guest2 = animosity.second;
+    for (const auto& dislike : dislikes) {
+        int guest1 = dislike.first;
+        int guest2 = dislike.second;
 
         graph[guest1].push_back(guest2);
         graph[guest2].push_back(guest1);
@@ -56,31 +84,34 @@ vector<vector<int>> createGraph(int numGuests, const vector<pair<int, int>>& ani
     return graph;
 }
 
-// Uses a stack-based coloring check to see whether the graph can be split into two tables.
+// Non-recursive DFS using a stack.
+// This checks if the graph is bipartite.
+//
+// color 0 = Table 1
+// color 1 = Table 2
+// color -1 = not assigned yet
 bool isBipartite(const vector<vector<int>>& graph, vector<int>& colors) {
     int n = graph.size();
     colors.assign(n, -1);
 
-    // Try every unvisited guest in case the graph has more than one group.
     for (int start = 0; start < n; start++) {
-        if (colors[start] != -1) continue;
+        if (colors[start] != -1) {
+            continue;
+        }
 
         stack<int> stk;
-        // Start the first table color from this guest.
         stk.push(start);
         colors[start] = 0;
 
         while (!stk.empty()) {
-            int vertex = stk.top();
+            int current = stk.top();
             stk.pop();
 
-            // Neighbors must get the opposite table color.
-            for (int neighbor : graph[vertex]) {
+            for (int neighbor : graph[current]) {
                 if (colors[neighbor] == -1) {
-                    colors[neighbor] = 1 - colors[vertex];
+                    colors[neighbor] = 1 - colors[current];
                     stk.push(neighbor);
-                } else if (colors[neighbor] == colors[vertex]) {
-                    // Same color on both ends means the 2-table plan fails.
+                } else if (colors[neighbor] == colors[current]) {
                     return false;
                 }
             }
@@ -90,9 +121,10 @@ bool isBipartite(const vector<vector<int>>& graph, vector<int>& colors) {
     return true;
 }
 
-// Prints the guests assigned to each table based on the coloring result.
+// Prints the two-table seating arrangement.
 void printSeatingArrangement(const vector<string>& guests, const vector<int>& colors) {
     cout << "Table 1 guests:" << endl;
+
     for (int i = 0; i < guests.size(); i++) {
         if (colors[i] == 0) {
             cout << "  " << guests[i] << endl;
@@ -100,6 +132,7 @@ void printSeatingArrangement(const vector<string>& guests, const vector<int>& co
     }
 
     cout << "\nTable 2 guests:" << endl;
+
     for (int i = 0; i < guests.size(); i++) {
         if (colors[i] == 1) {
             cout << "  " << guests[i] << endl;
@@ -108,28 +141,30 @@ void printSeatingArrangement(const vector<string>& guests, const vector<int>& co
 }
 
 int main() {
-    // Default input file for this task.
-    string guestFile = "guests.txt";
+    string guestsFile = "guests.txt";
+    string dislikesFile = "dislikes.txt";
 
-    auto [guests, animosities] = readGuestData(guestFile);
+    vector<string> guests = readGuests(guestsFile);
+
     if (guests.empty()) {
-        cout << "Failed to read guest data" << endl;
+        cout << "Failed to read guests" << endl;
         return 1;
     }
 
-    // Turn the conflicts into a graph before checking the seating plan.
-    vector<vector<int>> graph = createGraph(guests.size(), animosities);
+    vector<pair<int, int>> dislikes = readDislikes(dislikesFile, guests);
+
+    vector<vector<int>> graph = createGraph(guests.size(), dislikes);
 
     vector<int> colors;
+
     bool possible = isBipartite(graph, colors);
 
-    // If the graph is bipartite, the guests can be split into two valid tables.
     if (possible) {
-        cout << "Good news! A 2-table arrangement is possible!" << endl;
+        cout << "A 2-table arrangement is possible." << endl;
         printSeatingArrangement(guests, colors);
     } else {
-        cout << "Sorry, it's impossible to arrange guests in 2 tables without conflicts." << endl;
-        cout << "Aunt Petunia needs more tables or fewer guests!" << endl;
+        cout << "It is impossible to arrange the guests at only 2 tables without conflicts." << endl;
+        cout << "More than two tables would be needed." << endl;
     }
 
     return 0;
