@@ -1,5 +1,5 @@
 structure,word_count,build_ms,lookup_ms,memory_kb,correct_hits,wrong_hits
-"Ordinary Trie",109572,177.4263,1.2014,52792.3828,2000,0
-"Balanced Ternary Prefix Tree",109572,234.2608,5.1711,9776.3281,2000,0
-"Double Array Trie",109572,825830.8973,1.4329,4400.2441,2000,0
-"Red-Black Tree",109572,614.5041,23.9598,6848.3125,2000,0
+"Ordinary Trie",109572,101.3355,0.6966,52792.3828,2000,0
+"Balanced Ternary Prefix Tree",109572,97.7675,1.6643,9776.3281,2000,0
+"Double Array Trie",109572,311.6843,1.0839,6599.9268,2000,0
+"Red-Black Tree",109572,298.2235,8.8273,6848.3125,2000,0

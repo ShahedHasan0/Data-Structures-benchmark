@@ -227,6 +227,7 @@ class DoubleArrayTrie {
     vector<TempNode> temp;
     vector<int> baseArr, checkArr;
     vector<char> endArr;
+    int nextBaseHint;
 
     void ensureSize(int idx) {
         while ((int)baseArr.size() <= idx) {
@@ -237,9 +238,11 @@ class DoubleArrayTrie {
     }
 
     int findBase(const vector<int>& chars) {
-        int b = 1;
+        int b = max(1, nextBaseHint);
+
         while (true) {
             bool ok = true;
+
             for (int c : chars) {
                 ensureSize(b + c);
                 if (checkArr[b + c] != -1) {
@@ -247,40 +250,58 @@ class DoubleArrayTrie {
                     break;
                 }
             }
-            if (ok) return b;
+
+            if (ok) {
+                nextBaseHint = b + 1;
+                return b;
+            }
+
             b++;
         }
     }
 
 public:
-    DoubleArrayTrie() { temp.push_back(TempNode()); }
+    DoubleArrayTrie() : nextBaseHint(1) {
+        temp.push_back(TempNode());
+    }
 
     void insert(const string& w) {
         int cur = 0;
+
         for (char ch : w) {
             if (ch < 'a' || ch > 'z') return;
+
             int c = ch - 'a' + 1;
             int nxt = -1;
+
             for (auto &p : temp[cur].child) {
-                if (p.first == c) { nxt = p.second; break; }
+                if (p.first == c) {
+                    nxt = p.second;
+                    break;
+                }
             }
+
             if (nxt == -1) {
                 nxt = (int)temp.size();
                 temp[cur].child.push_back({c, nxt});
                 temp.push_back(TempNode());
             }
+
             cur = nxt;
         }
+
         temp[cur].endWord = true;
     }
 
     void freeze() {
-        baseArr.assign(temp.size() * 2 + 100, 0);
-        checkArr.assign(temp.size() * 2 + 100, -1);
-        endArr.assign(temp.size() * 2 + 100, 0);
+        baseArr.assign(temp.size() * 3 + 100, 0);
+        checkArr.assign(temp.size() * 3 + 100, -1);
+        endArr.assign(temp.size() * 3 + 100, 0);
+        nextBaseHint = 1;
 
         vector<int> stateOf(temp.size(), -1);
         stateOf[0] = 0;
+
         checkArr[0] = 0;
         endArr[0] = temp[0].endWord;
 
@@ -290,12 +311,16 @@ public:
         while (!q.empty()) {
             int node = q.front();
             q.pop();
+
             int state = stateOf[node];
 
             if (temp[node].child.empty()) continue;
 
             vector<int> chars;
-            for (auto &p : temp[node].child) chars.push_back(p.first);
+            for (auto &p : temp[node].child) {
+                chars.push_back(p.first);
+            }
+
             int b = findBase(chars);
             baseArr[state] = b;
 
@@ -303,10 +328,13 @@ public:
                 int c = p.first;
                 int childNode = p.second;
                 int nextState = b + c;
+
                 ensureSize(nextState);
+
                 checkArr[nextState] = state;
                 endArr[nextState] = temp[childNode].endWord;
                 stateOf[childNode] = nextState;
+
                 q.push(childNode);
             }
         }
@@ -317,15 +345,22 @@ public:
 
     bool search(const string& w) const {
         int state = 0;
+
         for (char ch : w) {
             if (ch < 'a' || ch > 'z') return false;
+
             int c = ch - 'a' + 1;
+
             if (state >= (int)baseArr.size()) return false;
+
             int nextState = baseArr[state] + c;
+
             if (nextState >= (int)checkArr.size()) return false;
             if (checkArr[nextState] != state) return false;
+
             state = nextState;
         }
+
         return state < (int)endArr.size() && endArr[state];
     }
 
