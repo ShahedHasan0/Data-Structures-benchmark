@@ -111,6 +111,7 @@ bool isBipartite(const vector<vector<int>>& graph, vector<int>& colors) {
 
             for (int neighbor : graph[current]) {
                 if (colors[neighbor] == -1) {
+                    // Put the neighbor at the opposite table because there is a dislike edge between them.
                     colors[neighbor] = 1 - colors[current];
                     stk.push(neighbor);
                 } else if (colors[neighbor] == colors[current]) {
