@@ -377,7 +377,7 @@ int main() {
         } else {
 
             double time =
-                static_cast<double>(distance) / wizard.speed;
+            static_cast<double>(distance) / wizard.speed;
 
             cout << "distance = "
                  << distance

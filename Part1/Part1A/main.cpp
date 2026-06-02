@@ -129,11 +129,12 @@ bool loadDictionary(string filename) {
         }
     }
 
-    // Sorting is only used for organized storage.
-    // The actual linear search still scans one by one.
+
+    // Sorting keeps the dictionary organized, but this version still uses
+    // a true linear scan for lookup, so it remains the naive O(n) method.
     sort(linearList.begin(), linearList.end());
 
-    return true;
+    return true;run===
 }
 
 // Naive linear-list approach.

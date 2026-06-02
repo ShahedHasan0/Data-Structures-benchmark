@@ -86,7 +86,9 @@ vector<vector<int>> createGraph(int numGuests, const vector<pair<int, int>>& dis
 
 // Non-recursive DFS using a stack.
 // This checks if the graph is bipartite.
-//
+// The seating problem is the same as checking whether the dislike graph is bipartite.
+// If the graph can be colored with two colors, then those colors represent the two tables.
+// A conflict happens if two guests who dislike each other receive the same color.
 // color 0 = Table 1
 // color 1 = Table 2
 // color -1 = not assigned yet
