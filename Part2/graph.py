@@ -3,31 +3,64 @@ import matplotlib.pyplot as plt
 
 data = pd.read_csv("hash_benchmark.csv")
 
-# Insert graph
-plt.figure()
-plt.plot(data["LoadFactor"], data["SeparateChaining_Insert"], marker="o", label="Separate Chaining")
-plt.plot(data["LoadFactor"], data["LinearProbing_Insert"], marker="o", label="Linear Probing")
-plt.plot(data["LoadFactor"], data["DoubleHashing_Insert"], marker="o", label="Double Hashing")
+x_labels = [str(x) for x in data["LoadFactor"]]
+x_pos = range(len(data["LoadFactor"]))
 
-plt.xlabel("Load Factor")
-plt.ylabel("Insert Time (microseconds)")
-plt.title("Insert Time vs Load Factor")
-plt.legend()
-plt.grid(True)
+def make_graph(columns, title, ylabel, filename, log_scale=False):
+    plt.figure(figsize=(10, 6))
 
-plt.savefig("insert_time_graph.png")
+    for column, label in columns:
+        plt.plot(x_pos, data[column], marker="o", label=label)
 
-# Search graph
-plt.figure()
-plt.plot(data["LoadFactor"], data["SeparateChaining_Search"], marker="o", label="Separate Chaining")
-plt.plot(data["LoadFactor"], data["LinearProbing_Search"], marker="o", label="Linear Probing")
-plt.plot(data["LoadFactor"], data["DoubleHashing_Search"], marker="o", label="Double Hashing")
+    plt.xlabel("Load Factor")
+    plt.ylabel(ylabel)
+    plt.title(title)
 
-plt.xlabel("Load Factor")
-plt.ylabel("Search Time (microseconds)")
-plt.title("Search Time vs Load Factor")
-plt.legend()
-plt.grid(True)
+    plt.xticks(x_pos, x_labels, rotation=45)
 
-plt.savefig("search_time_graph.png")
-plt.show()
+    if log_scale:
+        plt.yscale("log")
+        plt.ylabel(ylabel + " (log scale)")
+
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(filename, dpi=300)
+    plt.show()
+
+
+make_graph(
+    [
+        ("SeparateChaining_Insert", "Separate Chaining"),
+        ("LinearProbing_Insert", "Linear Probing"),
+        ("DoubleHashing_Insert", "Double Hashing")
+    ],
+    "Insertion Time vs Load Factor",
+    "Insertion Time (microseconds)",
+    "insert_time.png"
+)
+
+make_graph(
+    [
+        ("SeparateChaining_SuccessfulSearch", "Separate Chaining"),
+        ("LinearProbing_SuccessfulSearch", "Linear Probing"),
+        ("DoubleHashing_SuccessfulSearch", "Double Hashing")
+    ],
+    "Successful Search Time vs Load Factor",
+    "Search Time (microseconds)",
+    "successful_search.png"
+)
+
+make_graph(
+    [
+        ("SeparateChaining_UnsuccessfulSearch", "Separate Chaining"),
+        ("LinearProbing_UnsuccessfulSearch", "Linear Probing"),
+        ("DoubleHashing_UnsuccessfulSearch", "Double Hashing")
+    ],
+    "Unsuccessful Search Time vs Load Factor",
+    "Search Time (microseconds)",
+    "unsuccessful_search.png",
+    log_scale=True
+)
+
+print("Graphs generated successfully.")
