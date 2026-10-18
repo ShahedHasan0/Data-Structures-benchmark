@@ -134,7 +134,7 @@ bool loadDictionary(string filename) {
     // a true linear scan for lookup, so it remains the naive O(n) method.
     sort(linearList.begin(), linearList.end());
 
-    return true;run===
+    return true;
 }
 
 // Naive linear-list approach.
